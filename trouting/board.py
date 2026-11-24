@@ -178,8 +178,13 @@ class Board:
         for v in d["vias"]:
             n = self.ni.get(v["net"], NO_NET)
             g = Point(v["at"]).buffer(v["d"] / 2)
+            # its hole keeps the hole clearance from other nets' copper, which is more
+            # than the copper clearance from its pad when the ring is narrow
+            hole = Point(v["at"]).buffer(v["drill"] / 2) if v.get("drill") else None
             for l in range(self.L):
                 self.items.append((l, g, n, self.net_clr(n), False))
+                if hole is not None:
+                    self.items.append((l, hole, n, self.hole_clr, True))
         for h in d["holes"]:
             g = Point(h["at"]).buffer(h["r"])
             c = max(self.hole_clr, h.get("clearance") or 0.0)
