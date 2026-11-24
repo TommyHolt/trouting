@@ -1456,8 +1456,12 @@ class Router:
                                            b.ni[t["net"]], b.net_clr(b.ni[t["net"]]), False))
         for v in vias:
             g = shapely.Point(v["at"]).buffer(v["d"] / 2)
+            # its hole too: with a narrow ring, the hole clearance reaches further than the copper's
+            hole = shapely.Point(v["at"]).buffer(v["drill"] / 2) if v.get("drill") else None
             for l in range(b.L):
                 obst.setdefault(l, []).append((g, b.ni[v["net"]], b.net_clr(b.ni[v["net"]]), False))
+                if hole is not None:
+                    obst[l].append((hole, b.ni[v["net"]], b.hole_clr, True))
         trees = {l: shapely.STRtree([o[0] for o in os_]) for l, os_ in obst.items()}
         # no track at all in a keepout, not even inside a pad that reaches into one
         keep = {}
